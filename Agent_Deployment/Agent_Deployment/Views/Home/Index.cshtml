@@ -1,0 +1,78 @@
+﻿<div style="width:500px; margin:auto; margin-top:40px;">
+    <h2>Chatbot</h2>
+
+    <div id="chatBox"
+         style="border:1px solid #ccc; padding:10px; height:300px; overflow-y:scroll; background:#fafafa;">
+    </div>
+
+    <br />
+
+    <input id="msg" type="text" class="form-control" placeholder="Type your message..." />
+    <button id="sendBtn" class="btn btn-primary mt-2">Send</button>
+    <button id="submitFinal" class="btn btn-success mt-2">Submit Final</button>
+
+    <div id="finalResult" style="margin-top:20px; display:none;"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+    // Ask first question on page load
+    $(document).ready(function () {
+        sendMessage("start");
+    });
+
+    $("#sendBtn").click(function () {
+        let message = $("#msg").val();
+        if (message.trim() === "") return;
+
+        appendUser(message);
+        sendMessage(message);
+        $("#msg").val("");
+    });
+
+    function sendMessage(text) {
+        $.ajax({
+            url: "/Home/ChatMessage",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ message: text }),
+            success: function (res) {
+                appendBot(res.reply);
+            }
+        });
+    }
+
+    function appendUser(msg) {
+        $("#chatBox").append(`<p><b>You:</b> ${msg}</p>`);
+        scrollBottom();
+    }
+
+    function appendBot(msg) {
+        $("#chatBox").append(`<p><b>Bot:</b> ${msg}</p>`);
+        scrollBottom();
+    }
+
+    function scrollBottom() {
+        let box = document.getElementById("chatBox");
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // FINAL SUBMIT
+    $("#submitFinal").click(function () {
+        $.ajax({
+            url: "/Home/SubmitFinal",
+            method: "POST",
+            success: function (data) {
+                $("#finalResult").show().html(`
+                    <h4>Final Collected Details</h4>
+                    <p><b>Name:</b> ${data.name}</p>
+                    <p><b>Deploy:</b> ${data.deploy}</p>
+                    <p><b>GitLink:</b> ${data.gitLink}</p>
+                `);
+            }
+        });
+    });
+
+</script>
